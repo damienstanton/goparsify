@@ -3,20 +3,20 @@ package calc
 import (
 	"fmt"
 
-	. "github.com/vektah/goparsify"
+	"github.com/damienstanton/goparsify"
 )
 
 var (
-	value Parser
+	value goparsify.Parser
 
-	sumOp  = Chars("+-", 1, 1)
-	prodOp = Chars("/*", 1, 1)
+	sumOp  = goparsify.Chars("+-", 1, 1)
+	prodOp = goparsify.Chars("/*", 1, 1)
 
-	groupExpr = Seq("(", sum, ")").Map(func(n *Result) {
+	groupExpr = goparsify.Seq("(", sum, ")").Map(func(n *goparsify.Result) {
 		n.Result = n.Child[1].Result
 	})
 
-	number = NumberLit().Map(func(n *Result) {
+	number = goparsify.NumberLit().Map(func(n *goparsify.Result) {
 		switch i := n.Result.(type) {
 		case int64:
 			n.Result = float64(i)
@@ -27,7 +27,7 @@ var (
 		}
 	})
 
-	sum = Seq(prod, Some(Seq(sumOp, prod))).Map(func(n *Result) {
+	sum = goparsify.Seq(prod, goparsify.Some(goparsify.Seq(sumOp, prod))).Map(func(n *goparsify.Result) {
 		i := n.Child[0].Result.(float64)
 
 		for _, op := range n.Child[1].Child {
@@ -42,7 +42,7 @@ var (
 		n.Result = i
 	})
 
-	prod = Seq(&value, Some(Seq(prodOp, &value))).Map(func(n *Result) {
+	prod = goparsify.Seq(&value, goparsify.Some(goparsify.Seq(prodOp, &value))).Map(func(n *goparsify.Result) {
 		i := n.Child[0].Result.(float64)
 
 		for _, op := range n.Child[1].Child {
@@ -57,15 +57,15 @@ var (
 		n.Result = i
 	})
 
-	y = Maybe(sum)
+	y = goparsify.Maybe(sum)
 )
 
 func init() {
-	value = Any(number, groupExpr)
+	value = goparsify.Any(number, groupExpr)
 }
 
 func calc(input string) (float64, error) {
-	result, err := Run(y, input)
+	result, err := goparsify.Run(y, input)
 	if err != nil {
 		return 0, err
 	}
